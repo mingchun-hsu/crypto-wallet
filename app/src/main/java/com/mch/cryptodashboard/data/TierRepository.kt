@@ -9,10 +9,9 @@ class TierRepository(
     private val dao: TierDao
 ) {
 
-    fun getTiers() = dao.getTiers()
+    fun getTiers(supportedList: List<String>) = dao.getTiers(supportedList)
 
     suspend fun refresh() = withContext(Dispatchers.IO) {
-        delay((100L..2000L).random())
         val list = service.getRate().tiers
         dao.insertAll(list)
     }

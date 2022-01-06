@@ -13,7 +13,6 @@ class WalletRepository(
 
     suspend fun refresh() = withContext(Dispatchers.IO) {
         val list = service.getWallet().wallet
-        delay((100L..2000L).random())
         dao.insertAll(list)
     }
 }

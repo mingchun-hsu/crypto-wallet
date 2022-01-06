@@ -34,30 +34,21 @@ class MainFragment : Fragment(R.layout.fragment_main) {
 
         view.findViewById<RecyclerView>(R.id.recycler_view).adapter = adapter
 
-        viewModel.listLiveData.observe(viewLifecycleOwner) { list ->
-            view.findViewById<TextView>(R.id.balance).text = getMarkUpTotalBalance(list)
-            adapter.submitList(list)
+        viewModel.listLiveData.observe(viewLifecycleOwner) {
+            adapter.submitList(it)
+        }
+        viewModel.balanceLiveData.observe(viewLifecycleOwner) {
+            view.findViewById<TextView>(R.id.balance).text = getMarkUpTotalBalance(it)
         }
     }
 
-    private fun getMarkUpTotalBalance(currencyItemList: List<CurrencyItem>): SpannableStringBuilder {
+    private fun getMarkUpTotalBalance(walletBalance: BigDecimal?): SpannableStringBuilder {
         val whiteColor = ContextCompat.getColor(requireContext(), R.color.white)
-
-        val walletBalance = calculateTotalBalance(currencyItemList)
-        val formatWalletBalanceInString = NumberFormat.getNumberInstance().format(walletBalance)
-
+        val formatWalletBalanceInString = walletBalance?.let { NumberFormat.getNumberInstance().format(it) } ?: "--"
         return SpannableStringBuilder()
             .append("$ ")
             .bold { scale(1.2f) { color(whiteColor) { append(formatWalletBalanceInString) } } }
             .append(" USD")
-    }
-
-    private fun calculateTotalBalance(currencyItemList: List<CurrencyItem>): BigDecimal {
-        var sum = BigDecimal(0)
-        currencyItemList.forEach { item ->
-            item.balance?.also { sum += it }
-        }
-        return sum
     }
 
 

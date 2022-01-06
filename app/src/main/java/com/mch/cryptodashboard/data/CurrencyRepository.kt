@@ -13,7 +13,6 @@ class CurrencyRepository(
 
     suspend fun refresh() = withContext(Dispatchers.IO) {
         val list = service.getCurrency().currencies
-        delay((100L..2000L).random())
         dao.insertAll(list)
     }
 }

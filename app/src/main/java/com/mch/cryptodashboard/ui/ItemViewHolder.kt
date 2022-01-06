@@ -24,7 +24,6 @@ class ItemViewHolder(
 
 
     fun onBind(item: CurrencyItem) {
-        Log.d(TAG, "onBind: $item")
         glide.load(item.imageUrl).into(icon)
         name.text = item.name
         balance.text = "${item.amount} ${item.symbol}"

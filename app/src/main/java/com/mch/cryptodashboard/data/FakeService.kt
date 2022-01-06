@@ -1,14 +1,29 @@
 package com.mch.cryptodashboard.data
 
 import com.google.gson.Gson
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 
+/**
+ * Fake API service with random delay
+ */
 class FakeService: WebService {
 
-    override suspend fun getCurrency(): WebService.CurrencyResponse = Gson().fromJson(DATA_CURRENCY, WebService.CurrencyResponse::class.java)
+    override suspend fun getCurrency(): WebService.CurrencyResponse = withContext(Dispatchers.IO) {
+        delay((1000L..2000L).random())
+        Gson().fromJson(DATA_CURRENCY, WebService.CurrencyResponse::class.java)
+    }
 
-    override suspend fun getRate(): WebService.RateResponse = Gson().fromJson(DATA_RATE, WebService.RateResponse::class.java)
+    override suspend fun getRate(): WebService.RateResponse = withContext(Dispatchers.IO) {
+        delay((1000L..2000L).random())
+        Gson().fromJson(DATA_RATE, WebService.RateResponse::class.java)
+    }
 
-    override suspend fun getWallet(): WebService.WalletResponse = Gson().fromJson(DATA_WALLET, WebService.WalletResponse::class.java)
+    override suspend fun getWallet(): WebService.WalletResponse = withContext(Dispatchers.IO) {
+        delay((1000L..2000L).random())
+        Gson().fromJson(DATA_WALLET, WebService.WalletResponse::class.java)
+    }
 
 
     companion object {

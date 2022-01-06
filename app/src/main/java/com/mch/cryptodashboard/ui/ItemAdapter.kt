@@ -19,8 +19,6 @@ class ItemAdapter(private val glide: RequestManager) : ListAdapter<CurrencyItem,
 
 
     companion object {
-        private const val TAG = "CurrencyAdapter"
-
         private val DIFF_CALLBACK = object : DiffUtil.ItemCallback<CurrencyItem>() {
 
             override fun areItemsTheSame(oldItem: CurrencyItem, newItem: CurrencyItem): Boolean {
