@@ -4,16 +4,16 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 
-class CurrencyRepository(
+class TierRepository(
     private val service: WebService,
-    private val dao: CurrencyDao
+    private val dao: TierDao
 ) {
 
-    fun getCurrency() = dao.getCurrencies()
+    fun getTiers() = dao.getTiers()
 
     suspend fun refresh() = withContext(Dispatchers.IO) {
-        val list = service.getCurrency().currencies
         delay((100L..2000L).random())
+        val list = service.getRate().tiers
         dao.insertAll(list)
     }
 }

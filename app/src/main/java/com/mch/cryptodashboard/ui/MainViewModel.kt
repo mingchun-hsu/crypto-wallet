@@ -2,75 +2,100 @@ package com.mch.cryptodashboard.ui
 
 import android.app.Application
 import android.util.Log
-import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.MediatorLiveData
-import androidx.lifecycle.liveData
-import androidx.lifecycle.viewModelScope
+import android.widget.Toast
+import androidx.lifecycle.*
 import com.mch.cryptodashboard.CryptoApp
-import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
+import java.math.BigDecimal
+import kotlin.system.measureTimeMillis
 
 class MainViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val repository = getApplication<CryptoApp>().getRepository()
-
-    private val exceptionHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
-        Log.e(TAG, "handleException: $throwable")
-    }
-
-    private val currency =
-        liveData(viewModelScope.coroutineContext + Dispatchers.IO + exceptionHandler) {
-            emit(repository.getCurrency())
-        }
-
-    private val rate =
-        liveData(viewModelScope.coroutineContext + Dispatchers.IO + exceptionHandler) {
-            emit(repository.getRate())
-        }
-
-    private val wallet =
-        liveData(viewModelScope.coroutineContext + Dispatchers.IO + exceptionHandler) {
-            emit(repository.getWallet())
-        }
-
-
-    val list = MediatorLiveData<List<CurrencyItem>>()
+    private val currencyRepository = getApplication<CryptoApp>().getCurrencyRepository()
+    private val tierRepository = getApplication<CryptoApp>().getTierRepository()
+    private val walletRepository = getApplication<CryptoApp>().getWalletRepository()
 
     private var job: Job? = null
 
+    private val currencies = currencyRepository.getCurrency().asLiveData()
+
+    private val tires = tierRepository.getTiers().asLiveData()
+
+    private val wallets = walletRepository.getWallets().asLiveData()
+
+    val listLiveData = MediatorLiveData<List<CurrencyItem>>()
+
+    val spinner = MutableLiveData(false)
+
 
     init {
-        list.addSource(currency) { composeData() }
-        list.addSource(rate) { composeData() }
-        list.addSource(wallet) { composeData() }
+        listLiveData.addSource(currencies) { composeData() }
+        listLiveData.addSource(tires) { composeData() }
+        listLiveData.addSource(wallets) { composeData() }
+
+        refresh()
     }
 
+
+    fun refresh() {
+        viewModelScope.launch {
+            try {
+                spinner.postValue(true)
+                val time = measureTimeMillis {
+                    listOf(
+                        async { currencyRepository.refresh() },
+                        async { tierRepository.refresh() },
+                        async { walletRepository.refresh() }
+                    ).awaitAll()
+                }
+                Log.d(TAG, "refresh: spent: $time")
+            } catch (e: Exception) {
+                Toast.makeText(getApplication(), "${e.message}", Toast.LENGTH_SHORT).show()
+            } finally {
+                spinner.postValue(false)
+            }
+        }
+    }
 
     private fun composeData() {
         job?.cancel()
         job = viewModelScope.launch {
-            list.postValue(mutableListOf<CurrencyItem>().apply {
-                currency.value?.forEach { currency ->
-                    val amount = wallet.value?.find { it.currency == currency.coinId }?.amount
-                    val usd =
-                        rate.value?.find { it.fromCurrency == currency.coinId }?.rates?.first()?.rate?.multiply(
-                            amount
+            val time = measureTimeMillis {
+                val list = mutableListOf<CurrencyItem>().apply {
+                    currencies.value?.forEach { currency ->
+                        val amount = findWalletAmount(currency.coinId)
+                        val maxAmountRate = findMaxRate(currency.coinId)
+                        val item = CurrencyItem(
+                            currency.coinId,
+                            currency.colorfulImageURL,
+                            currency.name,
+                            currency.symbol,
+                            amount,
+                            amount?.let { maxAmountRate?.multiply(it) }
                         )
-                    val item = CurrencyItem(
-                        currency.coinId,
-                        currency.colorfulImageURL,
-                        currency.name,
-                        currency.symbol,
-                        amount,
-                        usd
-                    )
-                    add(item)
+                        add(item)
+                    }
                 }
-            })
+                listLiveData.postValue(list)
+            }
+            Log.d(TAG, "composeData: spent $time")
         }
     }
+
+    private suspend fun findWalletAmount(currency: String): BigDecimal? = withContext(Dispatchers.Default) {
+        wallets.value?.find {
+            ensureActive()
+            it.currency == currency
+        }?.amount
+    }
+
+    private suspend fun findMaxRate(currency: String): BigDecimal? = withContext(Dispatchers.Default) {
+        tires.value?.find {
+            ensureActive()
+            it.fromCurrency == currency
+        }?.rates?.maxByOrNull { it.amount }?.rate
+    }
+
 
 
     companion object {

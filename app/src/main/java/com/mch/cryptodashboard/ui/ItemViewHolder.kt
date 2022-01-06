@@ -28,7 +28,7 @@ class ItemViewHolder(
         glide.load(item.imageUrl).into(icon)
         name.text = item.name
         balance.text = "${item.amount} ${item.symbol}"
-        usd.text = "$ ${NumberFormat.getNumberInstance().format(item.usd)}"
+        usd.text = item.balance?.let { "$ ${NumberFormat.getNumberInstance().format(it)}" } ?: "$ --"
     }
 
 

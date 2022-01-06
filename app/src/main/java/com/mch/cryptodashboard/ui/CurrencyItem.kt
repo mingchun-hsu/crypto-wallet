@@ -8,5 +8,6 @@ data class CurrencyItem(
     val name: String,
     val symbol: String,
     val amount: BigDecimal?,
-    val usd: BigDecimal?
+    val balance: BigDecimal?,
+    val balanceCurrency: String? = "USD"
 )
