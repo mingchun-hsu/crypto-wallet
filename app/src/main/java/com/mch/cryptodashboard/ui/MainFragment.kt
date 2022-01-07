@@ -9,6 +9,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.text.bold
 import androidx.core.text.color
 import androidx.core.text.scale
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.RecyclerView
@@ -45,6 +46,9 @@ class MainFragment : Fragment(R.layout.fragment_main) {
             it.getContentIfNotHandled()?.also { text ->
                 Toast.makeText(requireContext(), text, Toast.LENGTH_SHORT).show()
             }
+        }
+        viewModel.empty.observe(viewLifecycleOwner) {
+            view.findViewById<View>(R.id.empty_message).isVisible = it
         }
     }
 

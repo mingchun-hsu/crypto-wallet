@@ -44,6 +44,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     val listLiveData: LiveData<List<CurrencyItem>> = _listLiveData
 
     /**
+     * Display swipe refresh message while data not ready
+     */
+    val empty: LiveData<Boolean> = Transformations.map(_listLiveData) {
+        it.isEmpty() && _spinner.value == false
+    }
+
+    /**
      * For swipe refresh
      */
     private val _spinner = MutableLiveData(false)
