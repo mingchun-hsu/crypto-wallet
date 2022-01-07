@@ -47,7 +47,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
      * For swipe refresh
      */
     private val _spinner = MutableLiveData(false)
-    val spinner = MutableLiveData(false)
+    val spinner: LiveData<Boolean> = _spinner
 
     private val _errorMessage = MutableLiveData<Event<String?>>()
     val errorMessage: LiveData<Event<String?>> = _errorMessage
