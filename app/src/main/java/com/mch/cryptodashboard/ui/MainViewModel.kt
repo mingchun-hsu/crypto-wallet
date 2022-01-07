@@ -30,20 +30,23 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     /**
      * Total balance at Top
      */
-    val balanceLiveData = MutableLiveData<BigDecimal?>()
+    private val _balanceLiveData = MutableLiveData<BigDecimal?>()
+    val balanceLiveData: LiveData<BigDecimal?> = _balanceLiveData
 
     /**
      * List item of supported currency with calculated data, trigger by other related data
      */
-    val listLiveData = MediatorLiveData<List<CurrencyItem>>().apply {
+    private val _listLiveData = MediatorLiveData<List<CurrencyItem>>().apply {
         addSource(currencies) { composeData() }
         addSource(tires) { composeData() }
         addSource(wallets) { composeData() }
     }
+    val listLiveData: LiveData<List<CurrencyItem>> = _listLiveData
 
     /**
      * For swipe refresh
      */
+    private val _spinner = MutableLiveData(false)
     val spinner = MutableLiveData(false)
 
     private val _errorMessage = MutableLiveData<Event<String?>>()
@@ -69,7 +72,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
      */
     fun refresh() {
         viewModelScope.launch(exceptionHandler) {
-            spinner.postValue(true)
+            _spinner.postValue(true)
             val time = measureTimeMillis {
                 listOf(
                     async { kotlin.runCatching { currencyRepository.refresh() }.onFailure { showErrorMessage(it) } },
@@ -78,7 +81,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 ).awaitAll()
             }
             Log.d(TAG, "refresh: spent: $time")
-            spinner.postValue(false)
+            _spinner.postValue(false)
         }
     }
 
@@ -116,8 +119,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 }
 
                 list.sortByDescending { it.balance }
-                listLiveData.postValue(list)
-                balanceLiveData.postValue(if (hasBalance) total else null)
+                _listLiveData.postValue(list)
+                _balanceLiveData.postValue(if (hasBalance) total else null)
             }
             Log.d(TAG, "composeData: spent $time | ${currencies.value?.size}, ${tires.value?.size}, ${wallets.value?.size}")
         }
