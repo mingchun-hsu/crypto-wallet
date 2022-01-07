@@ -114,6 +114,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                         }
                     }
                 }
+
+                list.sortByDescending { it.balance }
                 listLiveData.postValue(list)
                 balanceLiveData.postValue(if (hasBalance) total else null)
             }
