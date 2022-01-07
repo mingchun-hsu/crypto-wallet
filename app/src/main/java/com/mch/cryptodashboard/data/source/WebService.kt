@@ -1,4 +1,8 @@
-package com.mch.cryptodashboard.data
+package com.mch.cryptodashboard.data.source
+
+import com.mch.cryptodashboard.data.Currency
+import com.mch.cryptodashboard.data.Tier
+import com.mch.cryptodashboard.data.Wallet
 
 
 interface WebService {

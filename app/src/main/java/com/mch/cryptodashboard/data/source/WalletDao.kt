@@ -1,9 +1,10 @@
-package com.mch.cryptodashboard.data
+package com.mch.cryptodashboard.data.source
 
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy.REPLACE
 import androidx.room.Query
+import com.mch.cryptodashboard.data.Wallet
 import kotlinx.coroutines.flow.Flow
 
 @Dao

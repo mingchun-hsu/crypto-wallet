@@ -1,10 +1,11 @@
-package com.mch.cryptodashboard.data
+package com.mch.cryptodashboard.data.source
 
 import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import com.mch.cryptodashboard.data.*
 
 @Database(entities = [Currency::class, Tier::class, Wallet::class], version = 1)
 @TypeConverters(Converters::class)

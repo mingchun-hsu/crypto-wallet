@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.text.SpannableStringBuilder
 import android.view.View
 import android.widget.TextView
+import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.core.text.bold
 import androidx.core.text.color
@@ -39,6 +40,11 @@ class MainFragment : Fragment(R.layout.fragment_main) {
         }
         viewModel.balanceLiveData.observe(viewLifecycleOwner) {
             view.findViewById<TextView>(R.id.balance).text = getMarkUpTotalBalance(it)
+        }
+        viewModel.errorMessage.observe(viewLifecycleOwner) {
+            it.getContentIfNotHandled()?.also { text ->
+                Toast.makeText(requireContext(), text, Toast.LENGTH_SHORT).show()
+            }
         }
     }
 

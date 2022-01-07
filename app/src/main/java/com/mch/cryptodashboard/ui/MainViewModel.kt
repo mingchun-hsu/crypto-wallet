@@ -2,9 +2,9 @@ package com.mch.cryptodashboard.ui
 
 import android.app.Application
 import android.util.Log
-import android.widget.Toast
 import androidx.lifecycle.*
 import com.mch.cryptodashboard.CryptoApp
+import com.mch.cryptodashboard.Event
 import kotlinx.coroutines.*
 import java.math.BigDecimal
 import kotlin.system.measureTimeMillis
@@ -33,7 +33,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     val balanceLiveData = MutableLiveData<BigDecimal?>()
 
     /**
-     * List item of supported currency with calculated data, observe of related data
+     * List item of supported currency with calculated data, trigger by other related data
      */
     val listLiveData = MediatorLiveData<List<CurrencyItem>>().apply {
         addSource(currencies) { composeData() }
@@ -46,10 +46,17 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
      */
     val spinner = MutableLiveData(false)
 
+    private val _errorMessage = MutableLiveData<Event<String?>>()
+    val errorMessage: LiveData<Event<String?>> = _errorMessage
+
     /**
      * For cancel unnecessary jobs
      */
     private var job: Job? = null
+
+    private val exceptionHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
+        Log.e(TAG, "handleException: $coroutineContext, $throwable")
+    }
 
 
     init {
@@ -57,32 +64,30 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
 
+    /**
+     * Data fetch entry, launch in async and handle exception individually
+     */
     fun refresh() {
-        viewModelScope.launch {
-            try {
-                spinner.postValue(true)
-                val time = measureTimeMillis {
-                    listOf(
-                        async { currencyRepository.refresh() },
-                        async { tierRepository.refresh() },
-                        async { walletRepository.refresh() }
-                    ).awaitAll()
-                }
-                Log.d(TAG, "refresh: spent: $time")
-            } catch (e: Exception) {
-                Toast.makeText(getApplication(), "${e.message}", Toast.LENGTH_SHORT).show()
-            } finally {
-                spinner.postValue(false)
+        viewModelScope.launch(exceptionHandler) {
+            spinner.postValue(true)
+            val time = measureTimeMillis {
+                listOf(
+                    async { kotlin.runCatching { currencyRepository.refresh() }.onFailure { showErrorMessage(it) } },
+                    async { kotlin.runCatching { tierRepository.refresh() }.onFailure { showErrorMessage(it) } },
+                    async { kotlin.runCatching { walletRepository.refresh() }.onFailure { showErrorMessage(it) } },
+                ).awaitAll()
             }
+            Log.d(TAG, "refresh: spent: $time")
+            spinner.postValue(false)
         }
     }
 
     /**
-     * Trigger when data changes
+     * Trigger when data changes, dispatch to default
      */
     private fun composeData() {
         job?.cancel()
-        job = viewModelScope.launch {
+        job = viewModelScope.launch(Dispatchers.Default + exceptionHandler) {
             val time = measureTimeMillis {
                 var hasBalance = false
                 var total = BigDecimal(0)
@@ -112,11 +117,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 listLiveData.postValue(list)
                 balanceLiveData.postValue(if (hasBalance) total else null)
             }
-            Log.d(TAG, "composeData: spent $time")
+            Log.d(TAG, "composeData: spent $time | ${currencies.value?.size}, ${tires.value?.size}, ${wallets.value?.size}")
         }
     }
 
-    private suspend fun findWalletAmount(currency: String): BigDecimal? = withContext(Dispatchers.Default) {
+    private suspend fun findWalletAmount(currency: String): BigDecimal? = coroutineScope {
         wallets.value?.find {
             ensureActive()
             it.currency == currency
@@ -124,15 +129,19 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     /**
-     * Not sure how to choose if there are more than one
+     * TODO Not sure how to choose if there are more than one
      */
-    private suspend fun findRate(currency: String): BigDecimal? = withContext(Dispatchers.Default) {
+    private suspend fun findRate(currency: String): BigDecimal? = coroutineScope {
         tires.value?.find {
             ensureActive()
             it.fromCurrency == currency
         }?.rates?.maxByOrNull { it.amount }?.rate
     }
 
+    private fun showErrorMessage(throwable: Throwable) {
+        Log.e(TAG, "showErrorMessage: $throwable")
+        _errorMessage.value = Event(throwable.message)
+    }
 
 
     companion object {

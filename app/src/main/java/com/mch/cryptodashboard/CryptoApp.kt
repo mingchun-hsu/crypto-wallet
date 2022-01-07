@@ -2,6 +2,8 @@ package com.mch.cryptodashboard
 
 import android.app.Application
 import com.mch.cryptodashboard.data.*
+import com.mch.cryptodashboard.data.source.AppDatabase
+import com.mch.cryptodashboard.data.source.FakeService
 
 class CryptoApp : Application() {
 
