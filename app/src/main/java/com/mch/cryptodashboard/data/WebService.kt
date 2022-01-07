@@ -3,11 +3,11 @@ package com.mch.cryptodashboard.data
 
 interface WebService {
 
-    suspend fun getCurrency(): CurrencyResponse
+    suspend fun getCurrencies(): CurrencyResponse
 
-    suspend fun getRate(): RateResponse
+    suspend fun getTires(): RateResponse
 
-    suspend fun getWallet(): WalletResponse
+    suspend fun getWallets(): WalletResponse
 
 
     data class CurrencyResponse (

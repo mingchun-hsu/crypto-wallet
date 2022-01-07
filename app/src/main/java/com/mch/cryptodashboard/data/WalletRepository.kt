@@ -1,18 +1,19 @@
 package com.mch.cryptodashboard.data
 
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 
 class WalletRepository(
     private val service: WebService,
-    private val dao: WalletDao
+    private val dao: WalletDao,
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 ) {
 
-    fun getWallets() = dao.getWallet()
+    fun getWallets() = dao.getWallets()
 
-    suspend fun refresh() = withContext(Dispatchers.IO) {
-        val list = service.getWallet().wallet
+    suspend fun refresh() = withContext(ioDispatcher) {
+        val list = service.getWallets().wallet
         dao.insertAll(list)
     }
 }

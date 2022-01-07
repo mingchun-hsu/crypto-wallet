@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.Flow
 interface WalletDao {
 
     @Query("SELECT * FROM wallet")
-    fun getWallet(): Flow<List<Wallet>>
+    fun getWallets(): Flow<List<Wallet>>
 
     @Insert(onConflict = REPLACE)
     fun insertAll(list: List<Wallet>)

@@ -2,6 +2,7 @@ package com.mch.cryptodashboard.data
 
 import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 
@@ -10,17 +11,17 @@ import kotlinx.coroutines.withContext
  */
 class FakeService: WebService {
 
-    override suspend fun getCurrency(): WebService.CurrencyResponse = withContext(Dispatchers.IO) {
+    override suspend fun getCurrencies(): WebService.CurrencyResponse = coroutineScope {
         delay((1000L..2000L).random())
         Gson().fromJson(DATA_CURRENCY, WebService.CurrencyResponse::class.java)
     }
 
-    override suspend fun getRate(): WebService.RateResponse = withContext(Dispatchers.IO) {
+    override suspend fun getTires(): WebService.RateResponse = coroutineScope {
         delay((1000L..2000L).random())
         Gson().fromJson(DATA_RATE, WebService.RateResponse::class.java)
     }
 
-    override suspend fun getWallet(): WebService.WalletResponse = withContext(Dispatchers.IO) {
+    override suspend fun getWallets(): WebService.WalletResponse = coroutineScope {
         delay((1000L..2000L).random())
         Gson().fromJson(DATA_WALLET, WebService.WalletResponse::class.java)
     }

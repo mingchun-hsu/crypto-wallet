@@ -15,7 +15,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val tierRepository = getApplication<CryptoApp>().getTierRepository()
     private val walletRepository = getApplication<CryptoApp>().getWalletRepository()
 
-    private val currencies = currencyRepository.getCurrency().asLiveData()
+    private val currencies = currencyRepository.getCurrencies().asLiveData()
 
     /**
      * Query with supported currency only
@@ -33,9 +33,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     val balanceLiveData = MutableLiveData<BigDecimal?>()
 
     /**
-     * List item of supported currency with calculated data
+     * List item of supported currency with calculated data, observe of related data
      */
-    val listLiveData = MediatorLiveData<List<CurrencyItem>>()
+    val listLiveData = MediatorLiveData<List<CurrencyItem>>().apply {
+        addSource(currencies) { composeData() }
+        addSource(tires) { composeData() }
+        addSource(wallets) { composeData() }
+    }
 
     /**
      * For swipe refresh
@@ -49,10 +53,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
 
     init {
-        listLiveData.addSource(currencies) { composeData() }
-        listLiveData.addSource(tires) { composeData() }
-        listLiveData.addSource(wallets) { composeData() }
-
         refresh()
     }
 
@@ -77,6 +77,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    /**
+     * Trigger when data changes
+     */
     private fun composeData() {
         job?.cancel()
         job = viewModelScope.launch {
