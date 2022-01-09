@@ -2,7 +2,7 @@
 
 ## About UI
 
-- Total balance and List item is observe each related data
+- Total balance and List item are observed each related data
 - Support swipe refresh that will re-trigger data refresh
 - Launch data request asynchronously and handle exception separately
 - List is sorted by usd balance
