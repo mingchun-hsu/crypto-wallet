@@ -12,7 +12,7 @@ class TierRepository(
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 ) {
 
-    fun getTiers(supportedList: List<String>) = dao.getTiers(supportedList)
+    fun getTiers() = dao.getTiers()
 
     suspend fun refresh() = withContext(ioDispatcher) {
         val list = service.getTires().tiers

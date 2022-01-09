@@ -10,8 +10,8 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface TierDao {
 
-    @Query("SELECT * FROM tier WHERE fromCurrency IN (:supportedList)")
-    fun getTiers(supportedList: List<String>): Flow<List<Tier>>
+    @Query("SELECT * FROM tier")
+    fun getTiers(): Flow<List<Tier>>
 
     @Insert(onConflict = REPLACE)
     fun insertAll(list: List<Tier>)
