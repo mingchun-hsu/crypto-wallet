@@ -5,7 +5,6 @@ import android.util.Log
 import androidx.lifecycle.*
 import com.mch.cryptodashboard.CryptoApp
 import com.mch.cryptodashboard.Event
-import com.mch.cryptodashboard.data.Tier
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import java.math.BigDecimal
@@ -18,13 +17,14 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val walletRepository = getApplication<CryptoApp>().getWalletRepository()
 
     private val currencies = currencyRepository.getCurrencies()
-    private val tires = tierRepository.getTiers()
+    private val tiers = tierRepository.getTiers()
     private val wallets = walletRepository.getWallets()
 
     /**
      * Total balance at Top
      */
-    private val _balanceLiveData = combine(wallets, tires) { wallets, tiers ->
+    private val _balanceFlow = combine(wallets, tiers) { wallets, tiers ->
+        Log.d(TAG, "balance combine: ${wallets.size}, ${tiers.size}")
         if (wallets.isEmpty() || tiers.isEmpty()) {
             null
         } else {
@@ -37,16 +37,16 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             sum
         }
     }.flowOn(Dispatchers.Default)
-    val balanceLiveData = _balanceLiveData.asLiveData()
+    val balanceFlow = _balanceFlow
 
     /**
      * List item
      */
-    private val listFlow = combine(currencies, tires, wallets,) { currencies, tires, wallets ->
+    private val _listFlow = combine(currencies, tiers, wallets) { currencies, tires, wallets ->
+        Log.d(TAG, "list combine: ${currencies.size}, ${tires.size}, ${wallets.size}")
         mutableListOf<CurrencyItem>().apply {
             currencies.forEach { currency ->
                 val amount = wallets.find { currency.coinId == it.currency }?.amount
-                // TODO: 2022/1/9 Not sure if max amount meet requirement
                 val maxAmountRate = tires.find { currency.coinId == it.fromCurrency }?.rates?.maxByOrNull { it.amount }?.rate
                 val balance = amount?.let { maxAmountRate?.multiply(it) }
                 val item = CurrencyItem(
@@ -61,7 +61,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             }
         }.sortedByDescending { it.balance }
     }.flowOn(Dispatchers.Default)
-    val listLiveData = listFlow.asLiveData()
+    val listFlow = _listFlow
 
     /**
      * For swipe refresh
@@ -69,19 +69,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val _spinner = MutableLiveData(false)
     val spinner: LiveData<Boolean> = _spinner
 
-    /**
-     * Display swipe refresh message while data not ready
-     */
-    val empty: LiveData<Boolean> = Transformations.map(listLiveData) {
-        it.isEmpty() && _spinner.value == false
-    }
-
     private val _errorMessage = MutableLiveData<Event<String?>>()
     val errorMessage: LiveData<Event<String?>> = _errorMessage
-
-    private val exceptionHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
-        Log.e(TAG, "handleException: $coroutineContext, $throwable")
-    }
 
 
     init {
@@ -93,7 +82,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
      * Data fetch entry, launch in async and handle exception individually
      */
     fun refresh() {
-        viewModelScope.launch(exceptionHandler) {
+        viewModelScope.launch {
             _spinner.postValue(true)
             val time = measureTimeMillis {
                 listOf(

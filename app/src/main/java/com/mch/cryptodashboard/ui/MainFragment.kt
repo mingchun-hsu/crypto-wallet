@@ -2,6 +2,7 @@ package com.mch.cryptodashboard.ui
 
 import android.os.Bundle
 import android.text.SpannableStringBuilder
+import android.util.Log
 import android.view.View
 import android.widget.TextView
 import android.widget.Toast
@@ -9,13 +10,18 @@ import androidx.core.content.ContextCompat
 import androidx.core.text.bold
 import androidx.core.text.color
 import androidx.core.text.scale
-import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.bumptech.glide.Glide
 import com.mch.cryptodashboard.R
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import java.text.NumberFormat
 
@@ -36,19 +42,28 @@ class MainFragment : Fragment(R.layout.fragment_main) {
 
         view.findViewById<RecyclerView>(R.id.recycler_view).adapter = adapter
 
-        viewModel.listLiveData.observe(viewLifecycleOwner) {
-            adapter.submitList(it)
-        }
-        viewModel.balanceLiveData.observe(viewLifecycleOwner) {
-            view.findViewById<TextView>(R.id.balance).text = getMarkUpTotalBalance(it)
-        }
         viewModel.errorMessage.observe(viewLifecycleOwner) {
             it.getContentIfNotHandled()?.also { text ->
                 Toast.makeText(requireContext(), text, Toast.LENGTH_SHORT).show()
             }
         }
-        viewModel.empty.observe(viewLifecycleOwner) {
-            view.findViewById<View>(R.id.empty_message).isVisible = it
+
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.balanceFlow.collectLatest {
+                    Log.d(TAG, "balance collectLatest: $it")
+                    view.findViewById<TextView>(R.id.balance).text = getMarkUpTotalBalance(it)
+                }
+            }
+        }
+
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.listFlow.collectLatest {
+                    Log.d(TAG, "list collectLatest: ${it.size}")
+                    adapter.submitList(it)
+                }
+            }
         }
     }
 
@@ -63,6 +78,8 @@ class MainFragment : Fragment(R.layout.fragment_main) {
 
 
     companion object {
+        private const val TAG = "MainFragment"
+
         fun newInstance() = MainFragment()
     }
 }
