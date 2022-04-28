@@ -48,8 +48,8 @@ class MainFragment : Fragment(R.layout.fragment_main) {
             }
         }
 
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.balanceFlow.collectLatest {
                     Log.d(TAG, "balance collectLatest: $it")
                     view.findViewById<TextView>(R.id.balance).text = getMarkUpTotalBalance(it)
@@ -57,8 +57,8 @@ class MainFragment : Fragment(R.layout.fragment_main) {
             }
         }
 
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.listFlow.collectLatest {
                     Log.d(TAG, "list collectLatest: ${it.size}")
                     adapter.submitList(it)
