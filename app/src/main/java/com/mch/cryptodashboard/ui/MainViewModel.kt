@@ -86,19 +86,21 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             _spinner.postValue(true)
             val time = measureTimeMillis {
                 listOf(
-                    async { runCatching { currencyRepository.refresh() }.onFailure { showErrorMessage(it) } },
-                    async { runCatching { tierRepository.refresh() }.onFailure { showErrorMessage(it) } },
-                    async { runCatching { walletRepository.refresh() }.onFailure { showErrorMessage(it) } }
-                ).awaitAll()
+                    async { currencyRepository.refresh() },
+                    async { tierRepository.refresh() },
+                    async { walletRepository.refresh() }
+                ).awaitAll().forEach {
+                    if (it.isFailure) showErrorMessage(it.exceptionOrNull())
+                }
             }
             Log.d(TAG, "refresh: spent: $time")
             _spinner.postValue(false)
         }
     }
 
-    private fun showErrorMessage(throwable: Throwable) {
+    private fun showErrorMessage(throwable: Throwable?) {
         Log.e(TAG, "showErrorMessage: $throwable")
-        _errorMessage.value = Event(throwable.message)
+        _errorMessage.value = Event(throwable?.message)
     }
 
 
