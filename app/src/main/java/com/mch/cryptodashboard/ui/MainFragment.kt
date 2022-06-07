@@ -19,7 +19,6 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.bumptech.glide.Glide
 import com.mch.cryptodashboard.R
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
@@ -36,15 +35,23 @@ class MainFragment : Fragment(R.layout.fragment_main) {
         super.onViewCreated(view, savedInstanceState)
 
         view.findViewById<SwipeRefreshLayout>(R.id.swipe_refresh_layout).apply {
-            viewModel.spinner.observe(viewLifecycleOwner) { isRefreshing = it }
             setOnRefreshListener { viewModel.refresh() }
+            viewLifecycleOwner.lifecycleScope.launch {
+                viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                    viewModel.spinner.collectLatest {
+                        isRefreshing = it
+                    }
+                }
+            }
         }
 
         view.findViewById<RecyclerView>(R.id.recycler_view).adapter = adapter
 
-        viewModel.errorMessage.observe(viewLifecycleOwner) {
-            it.getContentIfNotHandled()?.also { text ->
-                Toast.makeText(requireContext(), text, Toast.LENGTH_SHORT).show()
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.error.collectLatest {
+                    Toast.makeText(requireContext(), it, Toast.LENGTH_SHORT).show()
+                }
             }
         }
 

@@ -4,7 +4,6 @@ import android.app.Application
 import android.util.Log
 import androidx.lifecycle.*
 import com.mch.cryptodashboard.CryptoApp
-import com.mch.cryptodashboard.Event
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import java.math.BigDecimal
@@ -67,11 +66,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
      * For swipe refresh
      */
     private val _spinner = MutableLiveData(false)
-    val spinner: LiveData<Boolean> = _spinner
 
-    private val _errorMessage = MutableLiveData<Event<String?>>()
-    val errorMessage: LiveData<Event<String?>> = _errorMessage
+    val spinner = MutableStateFlow(false)
 
+    val error = MutableSharedFlow<String>()
 
     init {
         refresh()
@@ -83,7 +81,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
      */
     fun refresh() {
         viewModelScope.launch {
-            _spinner.postValue(true)
+            spinner.value = true
             val time = measureTimeMillis {
                 listOf(
                     async { currencyRepository.refresh() },
@@ -94,13 +92,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 }
             }
             Log.d(TAG, "refresh: spent: $time")
-            _spinner.postValue(false)
+            spinner.value = false
         }
     }
 
     private fun showErrorMessage(throwable: Throwable?) {
         Log.e(TAG, "showErrorMessage: $throwable")
-        _errorMessage.value = Event(throwable?.message)
+        viewModelScope.launch {
+            throwable?.message?.also { error.emit(it) }
+        }
     }
 
 
