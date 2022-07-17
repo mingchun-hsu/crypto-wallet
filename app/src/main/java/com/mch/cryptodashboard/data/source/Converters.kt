@@ -1,30 +1,19 @@
 package com.mch.cryptodashboard.data.source
 
 import androidx.room.TypeConverter
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 import com.mch.cryptodashboard.data.Tier
-import java.math.BigDecimal
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 class Converters {
     @TypeConverter
-    fun fromBigDecimal(value: BigDecimal?): String? {
-        return value?.toString()
+    fun fromRateList(value: List<Tier.Rate>?): String {
+        return Json.encodeToString(value)
     }
 
     @TypeConverter
-    fun stringToBigDecimal(value: String?): BigDecimal? {
-        return BigDecimal(value)
-    }
-
-    @TypeConverter
-    fun fromRateList(value: List<Tier.Rate>?): String? {
-        return Gson().toJson(value)
-    }
-
-    @TypeConverter
-    fun stringToRateList(value: String?): List<Tier.Rate>? {
-        val type = object : TypeToken<List<Tier.Rate>>() {}.type
-        return Gson().fromJson(value, type)
+    fun stringToRateList(value: String): List<Tier.Rate>? {
+        return Json.decodeFromString(value)
     }
 }

@@ -37,7 +37,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             var sum = BigDecimal(0)
             wallets.forEach { wallet ->
                 tiers.find { wallet.currency == it.fromCurrency }?.rates?.maxByOrNull { it.amount }?.rate?.also {
-                    sum += wallet.amount.multiply(it)
+                    sum += BigDecimal(wallet.amount.toString()).multiply(BigDecimal(it))
                 }
             }
             sum
@@ -52,8 +52,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         Log.d(TAG, "list combine: ${currencies.size}, ${tires.size}, ${wallets.size}")
         mutableListOf<CurrencyItem>().apply {
             currencies.forEach { currency ->
-                val amount = wallets.find { currency.coinId == it.currency }?.amount
-                val maxAmountRate = tires.find { currency.coinId == it.fromCurrency }?.rates?.maxByOrNull { it.amount }?.rate
+                val amount = wallets.find { currency.coinId == it.currency }?.run { BigDecimal(amount.toString()) }
+                val maxAmountRate = tires.find { currency.coinId == it.fromCurrency }?.rates?.maxByOrNull { it.amount.toInt() }?.run { BigDecimal(rate) }
                 val balance = amount?.let { maxAmountRate?.multiply(it) }
                 val item = CurrencyItem(
                     currency.coinId,

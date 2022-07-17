@@ -2,19 +2,21 @@ package com.mch.cryptodashboard.data
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.google.gson.annotations.SerializedName
-import java.math.BigDecimal
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
+@Serializable
 @Entity
 data class Tier(
     @PrimaryKey
-    @SerializedName("from_currency") val fromCurrency: String,
-    @SerializedName("to_currency") val toCurrency: String,
-    @SerializedName("rates") val rates: List<Rate>
+    @SerialName("from_currency") val fromCurrency: String,
+    @SerialName("to_currency") val toCurrency: String,
+    @SerialName("rates") val rates: List<Rate>
 ) {
 
+    @Serializable
     data class Rate(
-        @SerializedName("amount") val amount: String,
-        @SerializedName("rate") val rate: BigDecimal
+        @SerialName("amount") val amount: String,
+        @SerialName("rate") val rate: String
     )
 }
