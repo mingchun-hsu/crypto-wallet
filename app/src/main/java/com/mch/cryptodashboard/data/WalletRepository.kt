@@ -15,12 +15,9 @@ class WalletRepository(
     fun getWallets() = dao.getWallets()
 
     suspend fun refresh() = withContext(ioDispatcher) {
-        try {
+        kotlin.runCatching {
             val list = service.getWallets().wallet
             dao.insertAll(list)
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
         }
     }
 }

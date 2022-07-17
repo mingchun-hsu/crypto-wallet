@@ -14,13 +14,10 @@ class CurrencyRepository(
 
     fun getCurrencies() = dao.getCurrencies()
 
-    suspend fun refresh(): Result<Unit> = withContext(ioDispatcher) {
-        try {
+    suspend fun refresh() = withContext(ioDispatcher) {
+        kotlin.runCatching {
             val list = service.getCurrencies().currencies
             dao.insertAll(list)
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
         }
     }
 }

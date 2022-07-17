@@ -15,12 +15,9 @@ class TierRepository(
     fun getTiers() = dao.getTiers()
 
     suspend fun refresh() = withContext(ioDispatcher) {
-        try {
+        kotlin.runCatching {
             val list = service.getTires().tiers
             dao.insertAll(list)
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
         }
     }
 }

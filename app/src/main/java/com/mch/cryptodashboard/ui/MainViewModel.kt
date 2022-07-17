@@ -2,10 +2,17 @@ package com.mch.cryptodashboard.ui
 
 import android.app.Application
 import android.util.Log
-import androidx.lifecycle.*
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
 import com.mch.cryptodashboard.CryptoApp
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import kotlin.system.measureTimeMillis
 
@@ -65,8 +72,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     /**
      * For swipe refresh
      */
-    private val _spinner = MutableLiveData(false)
-
     val spinner = MutableStateFlow(false)
 
     val error = MutableSharedFlow<String>()
@@ -91,7 +96,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     if (it.isFailure) showErrorMessage(it.exceptionOrNull())
                 }
             }
-            Log.d(TAG, "refresh: spent: $time")
+            Log.d(TAG, "refresh spent: $time ms")
             spinner.value = false
         }
     }
