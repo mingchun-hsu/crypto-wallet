@@ -1,10 +1,12 @@
 package com.mch.cryptodashboard.ui
 
-import android.app.Application
 import android.util.Log
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.mch.cryptodashboard.CryptoApp
+import com.mch.cryptodashboard.data.CurrencyRepository
+import com.mch.cryptodashboard.data.TierRepository
+import com.mch.cryptodashboard.data.WalletRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -14,13 +16,15 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
+import javax.inject.Inject
 import kotlin.system.measureTimeMillis
 
-class MainViewModel(application: Application) : AndroidViewModel(application) {
-
-    private val currencyRepository = getApplication<CryptoApp>().getCurrencyRepository()
-    private val tierRepository = getApplication<CryptoApp>().getTierRepository()
-    private val walletRepository = getApplication<CryptoApp>().getWalletRepository()
+@HiltViewModel
+class MainViewModel @Inject constructor(
+    private val currencyRepository: CurrencyRepository,
+    private val tierRepository: TierRepository,
+    private val walletRepository: WalletRepository
+) : ViewModel() {
 
     private val currencies = currencyRepository.getCurrencies()
     private val tiers = tierRepository.getTiers()

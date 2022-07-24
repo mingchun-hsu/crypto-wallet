@@ -6,4 +6,5 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="crypto_blue">#0A1F3E</color>
+    <color name="icy_white">#f5fafe</color>
 </resources>

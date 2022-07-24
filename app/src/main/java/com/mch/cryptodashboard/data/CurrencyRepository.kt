@@ -2,19 +2,18 @@ package com.mch.cryptodashboard.data
 
 import com.mch.cryptodashboard.data.source.CurrencyDao
 import com.mch.cryptodashboard.data.source.WebService
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import javax.inject.Inject
 
-class CurrencyRepository(
+class CurrencyRepository @Inject constructor(
     private val service: WebService,
     private val dao: CurrencyDao,
-    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 ) {
 
     fun getCurrencies() = dao.getCurrencies()
 
-    suspend fun refresh() = withContext(ioDispatcher) {
+    suspend fun refresh() = withContext(Dispatchers.IO) {
         kotlin.runCatching {
             val list = service.getCurrencies().currencies
             dao.insertAll(list)
